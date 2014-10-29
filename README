@@ -1,0 +1,55 @@
+// Usurelu Catalin Constantin 333CA
+// Tema 1.5
+
+    nume executabil -> main
+
+    Din motive de compatibilitate 32biti 64biti, nu am putut folosi
+Bison (transmiterea pointerilor in union - pentru clase gen afn, afd
+etc... - nu functioneaza corect deoarce union e un int care
+are 32 de biti iar un pointer are 64 (cel putin pe sistemul meu).
+
+    De asemenea, pentru testul 2 (NFA->RE) tema 1, imi da bad aloc daca nu folosesc --old,
+si tine vre-un minut pana se termina. Pobabil nu ajunge checker-ul pe 32 de biti 
+(desi am simplificat expresia cat de mult s-a putut). Pe forum s-a spus ca daca avem probleme
+de genu (merge cu --old) dar in rest totul merge perfect ni se va puncta si acest exercitiu
+(daca nu se poate ... asta e, dar problema e mai mult de la checker-ul pe 32 de biti).
+
+    Abordare pentru lexer:
+
+    Ideea principala este sa folosesc capacitatea lui flex de a functiona
+cu stari. O starea corespunde unei anumite portiuni din AFN/AFD/REGEX
+analizata (in Bison iesea doar dandu-i limbajul BNF ...).
+
+    Starea initiala este initiata in functie de o variabila globala (variabila
+care are valoarea corespunzatoare intrarii).
+
+    Asftel, spre exemplu pentru AFN in format normal: initial ne aflam in starea de start pentru
+AFN, citim paranteaza { si trecem in starea pentru citit starile initiale.
+In aceasta stare, citim un State, intram intr-o stare de citit separatori dintre
+state-uri, dupa ce am citit separator facem pop() (trecem in starea anterioara)
+si tot asa pana se inchide paranteza } si tot aici verificam si existenta sirului
+, urmat de { care indica faptul ca urmeaza alfabetul. Dupa ce citim alfabetul in
+mod asemator intram in starea de citit relatii).
+Starea de citit relatii este asemanatoare, doar ca un token este repezentat de o relatie
+completa adica va trebuia sa scoatem separat starea intiala, starea destinatie, si simbolul
+de tranzitie. Restul functioneaza asematator.
+
+    Pentru format XML este mai usor, ne creeam stari pentru fiecare tag. Cand detectam
+inceperea unui tag, intram in starea corespunzatoare lui, iar cand iesim din stare, citim si
+</tag> (adica nu il citim in starea corespunzatoare tag-ului) - asta pentru taguri gen symbol,
+state etc..., dar pentru tagurile principale gen states, alphabet etc. citim tag-ul de inceput,
+intram in starea de procesat tagul respectiv, si abia in acea stare se detecteaza tag-ul de sfarsit.
+
+    Algoritmi:
+        - pentru citire regex -> il transform intr-un arbore de parsare (folosind o citire recursiva).
+        - regex -> afn: algoritmii sunt cei invatati la laborator (nu cred ca exista altii)
+        - afn -> afd : folosesc algoritmul de calcul cu lambda inchideri (algoritm standard, gasit
+                       in majoritatea cartilor)
+        - afd -> regex : algoritmul k-Path (inchiderea tranzitiva) -> din cursurile lui Ullman. Am
+                         avut niste probleme aici deoarace trebuie puse parantezele bine cand creez expresii,
+                         si trebuie sa simplific expresia uriasa. De asemenea expresia rezultata este cam
+                         mare pentru testul 2 si trebuie testata cu --old, deoarece checkerul da bad alloc 
+                         (nu ii ajung 32 de biti :).
+
+    Pentru tema 1: limbajul descrie in my-er, my-afn, my-afd este sirul de numere format din symboluri quaternary 
+                   (00, 01, 10, 11). Spre exemplu 00101101111101
